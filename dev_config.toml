@@ -1,0 +1,11 @@
+[addon]
+src_code_rel_path = "src/blender_dev_bridge"
+installation_rel_path = ".blender43/portable/extensions/user_default/blender_dev_bridge"
+distribution_rel_path = "dist"
+blender_version = "4.3.0"
+blender_rel_path = '.blender43'
+startup_script_rel_path = ".blender43/portable/scripts/startup"
+
+addon_name = "blender_dev_bridge"
+addon_print_name = "Blender Dev Bridge"
+addon_operator_id = "bpy.ops.wm.blender_dev_bridge"

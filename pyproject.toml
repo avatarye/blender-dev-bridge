@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "blender_dev_bridge"
+version = "0.5.0"
+description = "An all-in-one Blender addon designed to streamline development workflows with tools for source code management, remote debugging, and enhanced developer productivity."
+authors = ["Yongqing Ye <avatar.ye@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+toml = "^0.10.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+auto_launch = "dev_fns:add_auto_launch_script"
+build = "dev_fns:build_addon"
+blender = "dev_fns:run_blender"
+sync = "dev_fns:sync_code"
