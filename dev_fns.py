@@ -1,9 +1,9 @@
 import os
-import sys
 from pathlib import Path
 import platform
 import shutil
 import subprocess
+import sys
 import tempfile
 from typing import Optional
 import zipfile
@@ -12,23 +12,33 @@ from packaging.version import Version
 import toml
 
 
-DEFAULT_DEV_CONFIG_TOML = {
-    'general': {
-        'src_code_rel_path': 'src',
-        'distribution_rel_path': 'dist',
-        'addon_operator_id': '',
+default_dev_config = {
+    'user_default': {
+        'general': {
+            'src_code_rel_path': 'src',
+            'distribution_rel_path': 'dist',
+            'blender_version': '',
+            'blender_backwards_compatible_version': '',
+        },
+        'addon': {
+            'build_legacy_addon_format': False,
+            'auto_launch_operator_id': '',
+        },
     },
-    'blender_new_schema': {
-        'blender_version': '',
-        'blender_rel_path': '',
-        'addon_rel_path': 'portable/extensions/user_default',
-        'startup_script_rel_path': 'portable/scripts/startup',
-    },
-    'blender_old_schema': {
-        'blender_version': '',
-        'blender_rel_path': '',
-        'addon_rel_path': '[version_minor]/scripts/addons',
-        'startup_script_rel_path': '[version_minor]/scripts/startup',
+    'addon_manifest': None,
+    'blender_schema': {
+        'blender_new_schema': {
+            'blender_version': None,
+            'blender_rel_path': None,
+            'addon_rel_path': 'portable/extensions/user_default',
+            'startup_script_rel_path': 'portable/scripts/startup',
+        },
+        'blender_old_schema': {
+            'blender_version': None,
+            'blender_rel_path': None,
+            'addon_rel_path': '[version_minor]/scripts/addons',
+            'startup_script_rel_path': '[version_minor]/scripts/startup',
+        },
     },
 }
 
@@ -40,7 +50,7 @@ DEV_CONFIG_TOML_PATH = Path(__file__).parent / 'dev_config.toml'
 def _create_dev_fns_toml():
     """Create the dev_fns.toml file with default values."""
     if not DEV_CONFIG_TOML_PATH.exists():
-        DEV_CONFIG_TOML_PATH.write_text(toml.dumps(DEFAULT_DEV_CONFIG_TOML))
+        DEV_CONFIG_TOML_PATH.write_text(toml.dumps(default_dev_config))
         print('[INFO] dev_fns.toml file created with default values.')
 
 

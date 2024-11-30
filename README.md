@@ -5,7 +5,9 @@ To install the addon, clone this repo and find the zipped addon file in the "dis
 
 # Configure Addon
 Before using the addon, you need to configure the addon. There are 3 settings you need to set, as shown in the following screenshot:
+
 ![addon_preferences.png](docs/images/addon_preferences.png)
+
 1. The version of the pydevd_pycharm package your PyCharm uses. This must match the version required by PyCharm.
 2. The server name of the Python Debug Server in PyCharm. This must match the Python Debug Server settings in PyCharm.
 3. The port number of the Python Debug Server in PyCharm. This must match the Python Debug Server settings in PyCharm.
@@ -13,11 +15,15 @@ Before using the addon, you need to configure the addon. There are 3 settings yo
 You can use the "Install" and "Uninstall" buttons to install and uninstall the pydevd_pycharm package. This provides a convenient way to manage the required pydevd_pycharm version. The library will be installed in Blender's Python environment.
 
 The last step is to enable the "Developer Extras" option in the Interface section of the Preferences window. This addon is a development addon, so it requires the "Developer Extras" to be enabled, otherwise it won't be available in the search dialog. This is shown in the following screenshot:
+
 ![blender_pref_developer_extras.png](docs/images/blender_pref_developer_extras.png)
+
 
 # Configure PyCharm
 To configure PyCharm to be connectable with this addon, you need to set up a Python Debug Server. The following steps are required, as shown in the following screenshot:
+
 ![pycharm_debugger.png](docs/images/pycharm_debugger.png)
+
 1. Note the version number of `pydevd_pycharm` shown in the configuration window. This must match the version number set in the addon preferences.
 2. Set the host to match the host specified in the addon preferences.
 3. Set the port to match the port specified in the addon preferences.

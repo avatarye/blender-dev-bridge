@@ -1,27 +1,12 @@
 [general]
 src_code_rel_path = "src"
 distribution_rel_path = "dist"
+blender_version = "4.3.0"
+blender_backwards_compatible_version = "4.1.1"
 
 [addon]
-id = "blender_dev_bridge"
-name = "Blender Dev Bridge"
-tagline = "An all-in-one Blender addon designed to streamline development workflows with tools for source code management, remote debugging, and enhanced developer productivity."
-maintainer = "Yongqing Ye <avatar.ye@gmail.com>"
-tags = ["Development"]
-blender_version_min = "4.2.0"
-license = ["GPL"]
-platforms = ["windows-x64", "macos-arm64", "macos-x64", "linux-x64"]
+auto_launch_operator_id = "bpy.ops.wm.blender_dev_bridge"
 
-addon_operator_id = "bpy.ops.wm.blender_dev_bridge"
-
-[blender_old_schema]
-blender_version = "4.1.1"
-blender_rel_path = '.blender41'
-addon_rel_path = "[version_minor]/scripts/addons"
-startup_script_rel_path = "[version_minor]/config/scripts/startup"
-
-[blender_new_schema]
-blender_version = "4.3.0"
-blender_rel_path = '.blender43'
-addon_rel_path = "portable/extensions/user_default"
-startup_script_rel_path = "portable/scripts/startup"
+[build]
+build_legacy_addon_format = true
+include_dependency_wheels = true
