@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 import platform
 import shutil
@@ -7,19 +8,30 @@ import tempfile
 from typing import Optional
 import zipfile
 
+from packaging.version import Version
 import toml
 
 
 DEFAULT_DEV_CONFIG_TOML = {
-    'addon': {
-        'src_code_rel_path': '',
-        'installation_rel_path': '',
-        'distribution_rel_path': '',
+    'general': {
+        'src_code_rel_path': 'src',
+        'distribution_rel_path': 'dist',
+        'addon_operator_id': '',
+    },
+    'blender_new_schema': {
         'blender_version': '',
         'blender_rel_path': '',
-        'startup_script_rel_path': '',
-    }
+        'addon_rel_path': 'portable/extensions/user_default',
+        'startup_script_rel_path': 'portable/scripts/startup',
+    },
+    'blender_old_schema': {
+        'blender_version': '',
+        'blender_rel_path': '',
+        'addon_rel_path': '[version_minor]/scripts/addons',
+        'startup_script_rel_path': '[version_minor]/scripts/startup',
+    },
 }
+
 DEV_CONFIG_TOML_PATH = Path(__file__).parent / 'dev_config.toml'
 
 
@@ -55,6 +67,57 @@ def _get_dev_fns_toml() -> dict:
                        f'proceeding.')
     with open(DEV_CONFIG_TOML_PATH, 'r') as file:
         return toml.load(file)
+
+
+def _get_dev_config() -> dict:
+
+    def get_addon_config_from_manifest() -> dict:
+        output_dict = {key: None for key in ['id', 'name', 'version', 'blender_version_min', 'maintainer', 'tags',
+                                             'scr_code_path', 'distribution_path']}
+        try:
+            addon_manifest_path = list((Path(__file__).parent).glob('**/blender_manifest.toml'))
+            if len(addon_manifest_path) == 1:
+                addon_manifest_path = addon_manifest_path[0]
+                addon_manifest_toml = toml.load(addon_manifest_path)
+                output_dict['id'] = addon_manifest_toml.get('id', None)
+                output_dict['name'] = addon_manifest_toml.get('name', None)
+                output_dict['version'] = addon_manifest_toml.get('version', None)
+                output_dict['blender_version_min'] = addon_manifest_toml.get('blender_version_min', None)
+                output_dict['maintainer'] = addon_manifest_toml.get('maintainer', None)
+                output_dict['tags'] = addon_manifest_toml.get('tags', None)
+                output_dict['scr_code_path'] = addon_manifest_path.parent
+                output_dict['distribution_path'] = Path(addon_manifest_toml.get('distribution_path', None))
+        except Exception as e:
+            print(f'[ERROR] Failed to get addon config from Blender manifest toml file: {e}')
+        return output_dict
+
+    def get_schema_config(schema_dict) -> dict:
+        output_dict = {key: None for key in ['blender_version', 'blender_dir', 'addon_dir', 'startup_script_dir']}
+        try:
+            blender_version = Version(schema_dict['blender_version'])
+            blender_dir = Path(__file__).parent / schema_dict['blender_rel_path']
+            if not blender_dir.exists():
+                print(f'[ERROR] Blender directory not found: {blender_dir}')
+            else:
+                output_dict['blender_version'] = blender_version
+                output_dict['blender_dir'] = blender_dir
+                output_dict['addon_dir'] = (blender_dir / schema_dict['addon_rel_path']
+                                            .replace('[version_minor]',
+                                                     f'{blender_version.major}.{blender_version.minor}'))
+                output_dict['startup_script_dir'] = (blender_dir / schema_dict['startup_script_rel_path']
+                                                    .replace('[version_minor]',
+                                                             f'{blender_version.major}.{blender_version.minor}'))
+        except Exception as e:
+            print(f'[ERROR] Failed to get schema config: {e}')
+        return output_dict
+
+    config_toml = _get_dev_fns_toml()
+    config_dict = {
+        'addon': get_addon_config_from_manifest(),
+        'new_schema': get_schema_config(config_toml['blender_new_schema']),
+        'old_schema': get_schema_config(config_toml['blender_old_schema'])
+    }
+    return config_dict
 
 
 def _get_path(path_key, is_rel_path: bool = False, must_exist: bool = False) -> Optional[Path]:
@@ -439,45 +502,17 @@ def add_auto_launch_script():
 
 # region Run Blender
 
-def run_blender(install_blender: bool = False):
+def run_blender():
     """
-    Run Blender that is installed within this package's directory using the path specified in the dev_fns.toml file. If
-    Blender is not installed, download it from the Blender website and set it up (unzip the file, remove the zip file,
-    and add a portable directory).
-
-    Args:
-        install_blender (bool): If True, download Blender from the Blender website and set it up. If False, run the
-                                Blender executable in the package's directory
     """
 
-    def download_blender():
-        """Run curl to install Blender 4.2, unzip the file, and remove the zip file. Add portable dir."""
-        # Detect current OS and download the corresponding Blender version
-        os = platform.system()
-        if os == 'Darwin':
-            subprocess.run(['curl', '-O', f'https://download.blender.org/release/{blender_minor_version}'
-                                          f'/blender-f{blender_version}-mac-x64.dmg'])
-            blender_zip_path = Path(__file__).parent / f'blender-f{blender_version}-mac-x64.dmg'
-        elif os == 'Linux':
-            subprocess.run(['curl', '-O', f'https://download.blender.org/release/{blender_minor_version}'
-                                          f'/blender-f{blender_version}-linux-x64.tar.xz'])
-            blender_zip_path = Path(__file__).parent / f'blender-f{blender_version}-linux-x64.tar.xz'
-        elif os == 'Windows':
-            subprocess.run(['curl', '-O', f'https://download.blender.org/release/{blender_minor_version}'
-                                          f'/blender-f{blender_version}-windfows-x64.zip'])
-            blender_zip_path = Path(__file__).parent / f'blender-f{blender_version}-windows-x64.zip'
-        else:
-            raise Exception(f'Unsupported OS: {os}')
-        # Unzip the file into Blender42 dir
-        with zipfile.ZipFile(blender_zip_path, 'r') as zip_ref:
-            zip_ref.extractall(Path(__file__).parent / blender_dir_name)
-        # Remove the zip file
-        blender_zip_path.unlink()
-        # Add portable dir
-        portal_dir = Path(__file__).parent / blender_dir_name / 'portable'
-        portal_dir.mkdir()
 
+    args = sys.argv[1:]
     dev_config = _get_dev_fns_toml()
+    # Defaults to the new schema (Blender > 4.2)
+    if len(args) == 0 or args[0] in ['new', 'new_schema']:
+        blender_version = Version(dev_config['blender_new_schema']['blender_version'])
+        blender_dir = Path(__file__).parent / dev_config['blender_new_schema']['blender_rel_path']
 
     try:
         blender_version = dev_config.get('addon', {}).get('blender_version')
@@ -501,6 +536,38 @@ def run_blender(install_blender: bool = False):
     else:
         raise Exception(f'Unsupported OS: {os}')
 
-    subprocess.run([str(blender_exe_path)])
+    # subprocess.run([str(blender_exe_path)])
+
+# endregion
+
+
+# Download Blender
+
+def download_blender():
+    """Run curl to install Blender 4.2, unzip the file, and remove the zip file. Add portable dir."""
+    # Detect current OS and download the corresponding Blender version
+    os = platform.system()
+    if os == 'Darwin':
+        subprocess.run(['curl', '-O', f'https://download.blender.org/release/{blender_minor_version}'
+                                      f'/blender-f{blender_version}-mac-x64.dmg'])
+        blender_zip_path = Path(__file__).parent / f'blender-f{blender_version}-mac-x64.dmg'
+    elif os == 'Linux':
+        subprocess.run(['curl', '-O', f'https://download.blender.org/release/{blender_minor_version}'
+                                      f'/blender-f{blender_version}-linux-x64.tar.xz'])
+        blender_zip_path = Path(__file__).parent / f'blender-f{blender_version}-linux-x64.tar.xz'
+    elif os == 'Windows':
+        subprocess.run(['curl', '-O', f'https://download.blender.org/release/{blender_minor_version}'
+                                      f'/blender-f{blender_version}-windfows-x64.zip'])
+        blender_zip_path = Path(__file__).parent / f'blender-f{blender_version}-windows-x64.zip'
+    else:
+        raise Exception(f'Unsupported OS: {os}')
+    # Unzip the file into Blender42 dir
+    with zipfile.ZipFile(blender_zip_path, 'r') as zip_ref:
+        zip_ref.extractall(Path(__file__).parent / blender_dir_name)
+    # Remove the zip file
+    blender_zip_path.unlink()
+    # Add portable dir
+    portal_dir = Path(__file__).parent / blender_dir_name / 'portable'
+    portal_dir.mkdir()
 
 # endregion

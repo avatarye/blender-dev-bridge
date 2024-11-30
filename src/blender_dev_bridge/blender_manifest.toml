@@ -1,13 +1,12 @@
 schema_version = "1.0.0"
 
-id = "vit_dt_blender_asset_downloader"
+id = "blender_dev_bridge"
 version = "0.6.0"
-name = "ASIN Downlader"
-tagline = "Download asset models from Woodshop or other Amazon sources"
-maintainer = "Yongqing Ye <yongye@amazon.com>"
+name = "Blender Dev Bridge"
+tagline = "An all-in-one Blender addon designed to streamline development workflows with tools for source code management, remote debugging, and enhanced developer productivity."
+maintainer = "Yongqing Ye <avatar.ye@gmail.com>"
 type = "add-on"
-website = "https://code.amazon.com/packages/VitDtBlenderAssetDownloader/trees/mainline"
-tags = ["Modeling"]
+tags = ["Development"]
 blender_version_min = "4.2.0"
 license = ["GPL"]
-platforms = ["windows-x64"]
+platforms = ["windows-x64", "macos-arm64", "macos-x64", "linux-x64"]

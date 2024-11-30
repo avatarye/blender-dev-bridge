@@ -22,5 +22,6 @@ __pycache__/
 poetry.lock
 
 /.blender43
+/.blender41
 
 /README.md

@@ -4,22 +4,22 @@ import sys
 
 import bpy
 
+if bpy.app.version[0] < 4 or bpy.app.version[1] < 2:
+    bl_info = {
+        'name': 'Blender Dev Bridge',
+        'author': 'Yongqing Ye, avatar.ye@gmail.com',
+        'version': (1, 0, 0),
+        'blender': (4, 0, 0),
+        'category': 'Development',
+    }
 
-bl_info = {
-    'name': 'Blender Dev Bridge',
-    'author': 'Yongqing Ye, avatar.ye@gmail.com',
-    'version': (1, 0, 0),
-    'blender': (4, 0, 0),
-    'category': 'Development',
-}
-
-__title__ = bl_info['name']
-__author__ = bl_info['author']
-__version__ = bl_info['version']
+    __title__ = bl_info['name']
+    __author__ = bl_info['author']
+    __version__ = bl_info['version']
 
 
 class BlenderDevBridgeAddonPreferences(bpy.types.AddonPreferences):
-    bl_idname = __name__
+    bl_idname = __package__
 
     pydev_pycharm_version: bpy.props.StringProperty(
         name='Version of pydevd_pycharm',
